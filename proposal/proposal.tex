@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage[margin=2cm]{geometry}
+
+\begin{document}
+\title{{\Huge Net Computing} \\[.5cm] {\Large Proposal project}}
+\author{
+\begin{tabular}{r l}
+	Martijn Luinstra & s\,2199289 \\
+	Emilio Oldenziel & s\,2509679 \\
+	Yannick Stoffers & s\,2372061
+\end{tabular}
+}
+
+\maketitle
+
+\section{Description}
+	Data centres have got a lot of machinery. We would like to develop a browser based dashboard to display all kinds of information regarding those machines. This information will include CPU temperature, current workload, network activity, etc. 
+
+	The dashboard will display all this information structured based on the different nodes in the system, and highlight deviating information. For example some node suddenly has a 20\,\% temperature increase, this node will be highlighted on the dashboard. Furthermore, we would like to add support for additional sensors. For instance, air flow sensors, temperature sensors or humidity sensors.
+
+	In order to accomplish this, we would like to build a central server that shall receive messages from the nodes telling it to start monitoring that node. The nodes will then continue to send their accumulated data periodically to the server. For the client side, you will simply connect to that same server, which will initiate a continuous stream of updates from all the connected nodes.
+
+	Furthermore, we would like to implement a service that allows to modify certain services on the connected nodes. Some examples include changing the rotations per minute of a cooling fan, or remote shut down/boot of the machines. We would like to implement this in such a manner that the nodes register the available services at the central server.
+
+\section{Techniques}
+	We will start by writing a small program that will collect sensor data. For this purpose we would like to use Python. Next, we will let this small program connect through REST to the central server. The periodic updates will be pushed to the central server through message queueing.
+
+	Then we will extend the central server to provide a web service from which a website can be accessed. The central server will open a network socket to which the front end connects in order to stream the received updates. HTML 5 web sockets should provide this functionality.
+
+	In order to perform actions on the nodes, we would like to use remote method invocation from the central server to the nodes. The front end will signal the server to invoke those methods. For this we will use the RPyC library.
+
+	We believe the Flask framework with the Flask-RESTful plug-in shall be suitable for the central server.
+\end{document}
