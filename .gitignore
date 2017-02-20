@@ -6,6 +6,7 @@
 *.synctex.gz
 *maikel*
 *Maikel*
+.vscode
 
 
 
