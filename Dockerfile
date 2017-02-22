@@ -1,9 +1,9 @@
 FROM ubuntu:latest
-RUN apt-get upgrade
 RUN apt-get update -y
-RUN apt-get install  python-pip python-dev build-essential
-COPY . /netcomp
-WORKDIR /netcomp
+RUN apt-get install -y python3-pip python3-dev build-essential
+COPY . /app
+WORKDIR /app
 RUN pip3 install -r requirements.txt
-ENTRYPOINT ["python"]
-CMD ["netcomp.py"]
+ENTRYPOINT ["python3"]
+CMD ["flask --version"]
+CMD ["app.py"]
