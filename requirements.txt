@@ -2,4 +2,6 @@ flask
 rpyc
 uwsgi
 flask-restful
-SQLAlchemy
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Script
