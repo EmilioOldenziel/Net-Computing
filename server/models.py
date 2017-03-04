@@ -47,12 +47,7 @@ class Node(db.Model):
 
 class Measurement(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
+    sensor = db.Column(db.Integer(), db.ForeignKey('sensor.id'))
     value_type = db.Column(db.String(10), nullable=False)
     unit = db.Column(db.String(3), nullable=False)
     value = db.Column(db.Float(), nullable=False)
-
-    def __init__(self, title, sensor, type, unit, value):
-        self.type = value_type
-        self.value = value
-        self.unit = unit
-
