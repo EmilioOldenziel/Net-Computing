@@ -8,6 +8,15 @@ class Sensor(db.Model):
     updated = db.Column(db.DateTime())
     created = db.Column(db.DateTime())
 
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'id': self.id,
+           'name' : self.name,
+           'created at': json.dumps(self.created.isoformat()),
+        }
+
     def __init__(self, **kwargs):
         now =  datetime.now()
         self.created = now
@@ -31,9 +40,10 @@ class Node(db.Model):
     def serialize(self):
        """Return object data in easily serializeable format"""
        return {
+           'id': self.id,
            'name' : self.name,
            'created at': json.dumps(self.created.isoformat()),
-    }
+        }
 
 class Measurement(db.Model):
     id = db.Column(db.Integer(), primary_key=True)

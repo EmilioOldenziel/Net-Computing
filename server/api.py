@@ -7,14 +7,14 @@ from .models import Node
 api = Api(app)
 
 
-parser = reqparse.RequestParser()
-parser.add_argument('name')
 
 class NodeList(Resource):
     def get(self):
         return jsonify(json_list=[i.serialize for i in Node.query.all()])
 
     def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name')
         args = parser.parse_args()
         data = {'name': args['name']}
         new_node = Node(name=data['name'])
@@ -22,4 +22,14 @@ class NodeList(Resource):
         db.session.commit()
         return 'node added', 201
 
-api.add_resource(NodeList, '/api/nodelist/', methods=['POST', 'GET'])
+    def delete(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('id')
+        args = parser.parse_args()
+        data = {'id': args['id']}
+        node = Node.query.get(data['id'])
+        db.session.delete(node)
+        db.session.commit()
+        return 'node added', 201        
+
+api.add_resource(NodeList, '/api/nodelist/', methods=['POST', 'GET', 'DELETE'])
