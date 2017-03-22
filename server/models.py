@@ -5,6 +5,7 @@ import json
 class Sensor(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
+    node = db.Column(db.Integer(), db.ForeignKey('node.id'))
     updated = db.Column(db.DateTime())
     created = db.Column(db.DateTime())
 
@@ -26,6 +27,7 @@ class Sensor(db.Model):
 class Node(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
+    ip = db.Column(db.String(30), unique=False)
     updated = db.Column(db.DateTime())
     created = db.Column(db.DateTime())
     
@@ -42,6 +44,7 @@ class Node(db.Model):
        return {
            'id': self.id,
            'name' : self.name,
+           'ip' : self.ip,
            'created at': json.dumps(self.created.isoformat()),
         }
 
