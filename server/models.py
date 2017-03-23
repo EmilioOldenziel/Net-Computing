@@ -45,7 +45,7 @@ class Node(db.Model):
            'id': self.id,
            'name' : self.name,
            'ip' : self.ip,
-           'created at': json.dumps(self.created.isoformat()),
+           'created at': unicode(self.created),
         }
 
 class Measurement(db.Model):
