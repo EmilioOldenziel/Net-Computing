@@ -1,53 +1,148 @@
 #!/usr/bin/env python
 
-import pika, random, sensors, json, requests, sys
+import argparse
+import json
+import pika
+import platform
+import pprint
+import random
+import requests
+import sys
+
+if sys.platform.startswith("linux"):
+    import sensors
+elif sys.platform.startswith('win32'):
+    import wmi
+    sensors = wmi.WMI(namespace='root\OpenHardwareMonitor')
+
 from time import sleep
 
-def start_connection(host, queue_name, node_id):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host))
-    channel = connection.channel()
 
-    channel.queue_declare(queue=queue_name)
+parser = argparse.ArgumentParser(description='Read sensor data')
+parser.add_argument('name',                   type=str,                                                  help='The name of the node')
+parser.add_argument('host',                   type=str, nargs="?", default='http://localhost:5000',      help='The host to connect with')
+parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The TXT email source file. (default: mail.txt)')
+args = parser.parse_args()
 
-    message = {}
-    message['id']=  node_id
-    
-    while(1):
-        message['measurements'] = measure_linux()
-        json_message = json.dumps(message)
-        channel.basic_publish(exchange='',
-                        routing_key=queue_name,
-                        body=json_message)
 
-        print(" [x] Sent measurement by" + message['id'])
-        sleep(1)
-    connection.close()
-
-""" gets hardware sensor measurements """
-def measure_linux():
-    sensors.init()
-    measurements_list = []
-
-    measurements_unit = {
+class LinuxDataCollector:
+    """ gets hardware sensor measurements for linux systems """
+    measurement_units = {
         2: 'celsius'
     }
-
-    try:
-        for chip in sensors.iter_detected_chips():
-            for feature in chip:
+    
+    def get_measurements(self):
+        def generate(data):
+            for feature in [chip for chip in data]:
                 print(feature)
-                measurements_list.append(
-                    {
+                if feature.type in self.measurement_units:
+                    yield {
                         'label': feature.label,
                         'value': feature.get_value(),
-                        'unit': measurements_unit[feature.type]
+                        'unit': self.measurement_units[feature.type]
                     }
-                )
-    finally:
-        sensors.cleanup()
-    
-    return measurements_list
+
+        sensors.init()
+        
+        try:
+            measurements = list(generate(sensors.iter_detected_chips()))
+        finally:
+            sensors.cleanup()
+
+        return measurements
+
+
+class WindowsDataCollector:
+    """ 
+    gets hardware sensor measurements for windows systems 
+    (requires OpenHardwareMonitor)
+    """
+
+    measurement_units = {
+        'Temperature': 'celsius',
+        # 'Load': 'percent',
+        # 'Fan': 'rpm',
+    }
+
+    def get_measurements(self):
+        def generate(sensors):
+            for sensor in sensors:
+                if sensor.SensorType in self.measurement_units:
+                    yield {
+                        'label': sensor.Name,
+                        'value': sensor.Value,
+                        'unit': self.measurement_units[sensor.SensorType],
+                    }
+
+        return list(generate(sensors.Sensor()))
+
+
+class RandomDataCollector:
+    """ simulates hardware sensor measurements """
+    def __init__(self):
+        self.cores = 2 ** random.randrange(4)
+        self.data = dict( ('core {}'.format(c), random.random() * 80 + 20) for c in range(self.cores) )
+
+    def get_measurements(self):
+        def generate():
+            for core in self.data:
+                self.data[core] += random.random() * 4 - 2
+                self.data[core] = min(150, max(10, self.data[core]))
+                yield {
+                    'label': core,
+                    'value': self.data[core],
+                    'unit': 'celsius',
+                }
+        return list(generate())
+
+
+def _get_datacollector():
+    if args.sensor == 'random':
+        return RandomDataCollector()
+        
+    elif args.sensor == 'system':
+        if sys.platform.startswith("linux"):
+            return LinuxDataCollector()
+        elif sys.platform.startswith('win32'):
+            return WindowsDataCollector()
+        raise Exception("Unsupported platform")
+
+    raise Exception("Invalid sensor")
+
+
+class Node:
+    def __init__(self, host, queue_name, node_id):
+        self.node_id = node_id
+        self.queue_name = queue_name
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=host))
+        self.channel = self.connection.channel()
+        self.channel.queue_declare(queue=queue_name)
+
+        self.datacollector = _get_datacollector()
+
+    def measure(self):
+        return self.datacollector.get_measurements()
+        
+    def run(self):
+        while True:
+            message = {
+                'id': self.node_id,
+                'measurements': self.measure()
+            }
+
+            self.channel.basic_publish(
+                exchange='',
+                routing_key=self.queue_name,
+                body=json.dumps(message)
+            )
+
+            print(' [x] Sent measurement by {}'.format(message['id']))
+            
+            sleep(1)
+
+        self.connection.close()
+
 
 def setup_node(name, host):
     node_ip = "ipswag"
@@ -59,11 +154,9 @@ def setup_node(name, host):
     r = requests.post(host, data)
     node_id = r.text
 
-    start_connection('localhost', "mq", node_id)
+    return Node('localhost', "mq", node_id)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print('We need 2 arguments: name, host')
-    name = sys.argv[1]
-    host = sys.argv[2]
-    setup_node(name, host)
+    node = setup_node(args.name, args.host)
+    node.run()
