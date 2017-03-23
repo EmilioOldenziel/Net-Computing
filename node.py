@@ -16,6 +16,7 @@ elif sys.platform.startswith('win32'):
     sensors = wmi.WMI(namespace='root\OpenHardwareMonitor')
 
 from time import sleep
+from datetime import datetime as dt
 
 
 parser = argparse.ArgumentParser(description='Read sensor data')
@@ -33,14 +34,15 @@ class LinuxDataCollector:
     
     def get_measurements(self):
         def generate(data):
-            for feature in [chip for chip in data]:
-                print(feature)
-                if feature.type in self.measurement_units:
-                    yield {
-                        'label': feature.label,
-                        'value': feature.get_value(),
-                        'unit': self.measurement_units[feature.type]
-                    }
+            for chip in data:
+                for feature in chip:
+                    print(feature)
+                    if feature.type in self.measurement_units:
+                        yield {
+                            'label': feature.label,
+                            'value': feature.get_value(),
+                            'unit': self.measurement_units[feature.type]
+                        }
 
         sensors.init()
         
@@ -128,6 +130,7 @@ class Node:
         while True:
             message = {
                 'id': self.node_id,
+                'ts': unicode(dt.now()),
                 'measurements': self.measure()
             }
 
@@ -144,17 +147,27 @@ class Node:
         self.connection.close()
 
 
+def get_ip_address():
+    """
+        TODO: implement ip return
+    """
+    return "my_awesome_ip"
+
 def setup_node(name, host):
-    node_ip = "ipswag"
+    node_ip = get_ip_address()
     host = host + '/api/nodelist/'
     data = {
         'name': name,
         'ip': node_ip
     }
     r = requests.post(host, data)
-    node_id = r.text
-
-    return Node('localhost', "mq", node_id)
+    print(r.text)
+    sd = json.loads(r.text)
+    
+    if r.status_code == 201:
+        return Node(sd['q_host'], sd['q_name'], sd['node_id'])
+    if r.status_code == 403 and sd['node_id'] == None:
+        exit("name already in use")
 
 
 if __name__ == "__main__":

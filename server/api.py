@@ -15,11 +15,19 @@ class NodeList(Resource):
         parser.add_argument('name')
         parser.add_argument('ip')
         args = parser.parse_args()
-        data = {'name': args['name'], 'ip': args['ip']} 
+        data = {'name': args['name'], 'ip': args['ip']}
+        if(Node.query.filter_by(name=data['name']).count() > 0):
+            response = jsonify(node_id=None)
+            response.status_code = 403
+            return response
         new_node = Node(name=data['name'], ip=data['ip'])
         db.session.add(new_node)
         db.session.commit()
-        return new_node.id, 201
+        response =  jsonify(node_id=new_node.id,
+                            q_host='localhost',
+                            q_name='mq')
+        response.status_code = 201
+        return response
 
     def delete(self):
         parser = reqparse.RequestParser()
