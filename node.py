@@ -83,7 +83,8 @@ class RandomDataCollector:
     """ simulates hardware sensor measurements """
     def __init__(self):
         self.cores = 2 ** random.randrange(4)
-        self.data = dict( ('core {}'.format(c), random.random() * 80 + 20) for c in range(self.cores) )
+        self.data = dict( ('core {}'.format(c), 
+            random.random() * 80 + 20) for c in range(self.cores) )
 
     def get_measurements(self):
         def generate():

@@ -16,10 +16,12 @@ class NodeList(Resource):
         parser.add_argument('ip')
         args = parser.parse_args()
         data = {'name': args['name'], 'ip': args['ip']}
+        """ if name already exits """
         if(Node.query.filter_by(name=data['name']).count() > 0):
             response = jsonify(node_id=None)
             response.status_code = 403
             return response
+        """ add node and return setup for mq """
         new_node = Node(name=data['name'], ip=data['ip'])
         db.session.add(new_node)
         db.session.commit()
