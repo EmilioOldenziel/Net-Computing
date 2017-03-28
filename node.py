@@ -78,6 +78,10 @@ class WindowsDataCollector:
 
         return list(generate(sensors.Sensor()))
 
+class MacOSDataCollector:
+    def get_measurements(self):
+        return [3, 4]
+
 
 class RandomDataCollector:
     """ simulates hardware sensor measurements """
@@ -107,17 +111,19 @@ def _get_datacollector():
             return LinuxDataCollector()
         elif sys.platform.startswith('win32'):
             return WindowsDataCollector()
+        elif sys.platform.startswith('darwin'):
+            return MacOSDataCollector()
         raise Exception("Unsupported platform")
 
     raise Exception("Invalid sensor")
 
 
 class Node:
-    def __init__(self, host, queue_name, node_id):
+    def __init__(self, given_host, queue_name, node_id):
         self.node_id = node_id
         self.queue_name = queue_name
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=host))
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=given_host))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=queue_name)
 
