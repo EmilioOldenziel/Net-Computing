@@ -17,7 +17,7 @@ class Actuator:
 				Actuator: "actuator"
 			},
 			host = platform.node (),
-			ns = False
+			ns = True
 			)
 
 def main ():
