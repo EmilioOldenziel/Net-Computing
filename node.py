@@ -9,6 +9,8 @@ import random
 import requests
 import sys
 
+import subprocess   # Starting a process
+
 if sys.platform.startswith("linux"):
     import sensors
 elif sys.platform.startswith('win32'):
@@ -24,7 +26,6 @@ parser.add_argument('name',                   type=str,                         
 parser.add_argument('host',                   type=str, nargs="?", default='http://localhost:5000',      help='The host to connect with')
 parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The TXT email source file. (default: mail.txt)')
 args = parser.parse_args()
-
 
 class LinuxDataCollector:
     """ gets hardware sensor measurements for linux systems """
@@ -78,12 +79,18 @@ class WindowsDataCollector:
 
         return list(generate(sensors.Sensor()))
 
+class MacOSDataCollector:
+    # TODO: This needs to be expanded.
+    def get_measurements(self):
+        return [3, 4]
+
 
 class RandomDataCollector:
     """ simulates hardware sensor measurements """
     def __init__(self):
         self.cores = 2 ** random.randrange(4)
-        self.data = dict( ('core {}'.format(c), random.random() * 80 + 20) for c in range(self.cores) )
+        self.data = dict( ('core {}'.format(c), 
+            random.random() * 80 + 20) for c in range(self.cores) )
 
     def get_measurements(self):
         def generate():
@@ -107,17 +114,19 @@ def _get_datacollector():
             return LinuxDataCollector()
         elif sys.platform.startswith('win32'):
             return WindowsDataCollector()
+        elif sys.platform.startswith('darwin'):
+            return MacOSDataCollector()
         raise Exception("Unsupported platform")
 
     raise Exception("Invalid sensor")
 
 
 class Node:
-    def __init__(self, host, queue_name, node_id):
+    def __init__(self, given_host, queue_name, node_id):
         self.node_id = node_id
         self.queue_name = queue_name
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=host))
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=given_host))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=queue_name)
 
@@ -154,6 +163,9 @@ def get_ip_address():
     return "my_awesome_ip"
 
 def setup_node(name, host):
+    # Start actuator
+    subprocess.Popen (["python", "actuator.py"])
+
     node_ip = get_ip_address()
     host = host + '/api/nodelist/'
     data = {
