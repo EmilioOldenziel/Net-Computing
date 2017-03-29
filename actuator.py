@@ -1,3 +1,4 @@
+import os
 import platform
 import Pyro4        # RMI
 
@@ -5,6 +6,9 @@ import Pyro4        # RMI
 @Pyro4.behavior(instance_mode="single")     # Single instance per node
 class Actuator:
 	# Define methods here to be accessible remotely.
+	def shut_down (self):
+		os.system ("shutdown -h now")
+
 
 	# Starts the pyro daemon
 	def start (self):
