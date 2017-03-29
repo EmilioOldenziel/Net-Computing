@@ -130,7 +130,7 @@ class Node:
         while True:
             message = {
                 'id': self.node_id,
-                'ts': unicode(dt.now()),
+                'ts': str(dt.now()),
                 'measurements': self.measure()
             }
 
