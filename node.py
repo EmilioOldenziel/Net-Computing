@@ -9,6 +9,8 @@ import random
 import requests
 import sys
 
+import subprocess   # Starting a process
+
 if sys.platform.startswith("linux"):
     import sensors
 elif sys.platform.startswith('win32'):
@@ -24,7 +26,6 @@ parser.add_argument('name',                   type=str,                         
 parser.add_argument('host',                   type=str, nargs="?", default='http://localhost:5000',      help='The host to connect with')
 parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The TXT email source file. (default: mail.txt)')
 args = parser.parse_args()
-
 
 class LinuxDataCollector:
     """ gets hardware sensor measurements for linux systems """
@@ -79,6 +80,7 @@ class WindowsDataCollector:
         return list(generate(sensors.Sensor()))
 
 class MacOSDataCollector:
+    # TODO: This needs to be expanded.
     def get_measurements(self):
         return [3, 4]
 
@@ -160,6 +162,9 @@ def get_ip_address():
     return "my_awesome_ip"
 
 def setup_node(name, host):
+    # Start actuator
+    subprocess.Popen (["python", "actuator.py"])
+
     node_ip = get_ip_address()
     host = host + '/api/nodelist/'
     data = {
