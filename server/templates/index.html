@@ -29,6 +29,7 @@
                 });
 
         function UpdateChart(data){
+            console.log(data);
             chart_data.datasets[0].data.push({
                 x: Date.now(), 
                 y: data[0].value
@@ -40,7 +41,7 @@
         function MeasurementsSocket() {
             if ("WebSocket" in window) {               
                 // Let us open a web socket
-                var ws = new WebSocket("ws://localhost:5000/measurements");
+                var ws = new WebSocket("ws://" + window.location.host + "/measurements");
 
                 ws.onopen = function() {
 
@@ -48,8 +49,10 @@
 
                 ws.onmessage = function (evt) { 
                     var received_msg = JSON.parse(evt.data);
-                    if (received_msg.msg_type === 'update_clients')
+                    console.log(received_msg);
+                    if (received_msg.msg_type === 'update_clients'){
                         UpdateChart(received_msg.data);
+                    }
                 };
 
                 ws.onclose = function() { 

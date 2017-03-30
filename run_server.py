@@ -12,7 +12,7 @@ if __name__ == '__main__':
     from geventwebsocket import WebSocketServer
 
     WebSocketServer(
-        (IP (), 5000),
+        ('0.0.0.0', 5000),
         resources
     ).serve_forever()
 

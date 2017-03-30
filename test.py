@@ -2,7 +2,9 @@ import Pyro4
 import socket
 
 def IP ():
-	return socket.gethostbyname(socket.gethostname())
+	# return socket.gethostbyname(socket.gethostname())
+    # return '145.97.135.165'
+    return 'localhost'
 
 daemons = []
 with Pyro4.locateNS (host = IP ()) as ns:
