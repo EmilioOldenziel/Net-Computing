@@ -2,6 +2,31 @@ from datetime import datetime
 from . import db
 import json
 
+class Node(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(30), unique=True)
+    ip = db.Column(db.String(30), unique=False)
+    updated = db.Column(db.DateTime())
+    created = db.Column(db.DateTime())
+    
+
+    def __init__(self, **kwargs):
+        now =  datetime.now()
+        self.created = now
+        self.updated = now
+        super(Node, self).__init__(**kwargs)
+
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'id': self.id,
+           'name' : self.name,
+           'ip' : self.ip,
+           'created at': str(self.created),
+        }
+
+
 class Sensor(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
@@ -24,29 +49,6 @@ class Sensor(db.Model):
         self.updated = now
         super(Sensor, self).__init__(**kwargs)
 
-class Node(db.Model):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(30), unique=True)
-    ip = db.Column(db.String(30), unique=False)
-    updated = db.Column(db.DateTime())
-    created = db.Column(db.DateTime())
-    
-
-    def __init__(self, **kwargs):
-        now =  datetime.now()
-        self.created = now
-        self.updated = now
-        super(Node, self).__init__(**kwargs)
-
-    @property
-    def serialize(self):
-       """Return object data in easily serializeable format"""
-       return {
-           'id': self.id,
-           'name' : self.name,
-           'ip' : self.ip,
-           'created at': unicode(self.created),
-        }
 
 class Measurement(db.Model):
     id = db.Column(db.Integer(), primary_key=True)

@@ -1,21 +1,44 @@
 #!/usr/bin/env python
-import pika, json
+import argparse
+import json
+import pika
+
+from websocket import create_connection
 
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host='localhost'))
-channel = connection.channel()
+parser = argparse.ArgumentParser(description='Process message queue data to database')
+parser.add_argument('mq_host',                type=str, nargs="?", default='localhost',                  help='The host of the message queue')
+parser.add_argument('server_socket',            type=str, nargs="?", default='ws://localhost:5000/measurements',      help='The host of the database server')
+args = parser.parse_args()
 
-channel.queue_declare(queue='mq')
 
-def callback(ch, method, properties, body):
-    print(" [x] Received %r" % body)
-    measurement_dict = json.loads(body)
-    # insert dict into database as measurement
+class MessageQueueConnector():
+    def __init__(self, mq_host, server_socket):
+        self.mq_host = mq_host
+        self.server_socket = server_socket
 
-channel.basic_consume(callback,
-                      queue='mq',
-                      no_ack=True)
+    def run(self):
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=self.mq_host)
+        )
+        channel = connection.channel()
+        
+        channel.queue_declare(queue='mq')
+        channel.basic_consume(self.consume, queue='mq', no_ack=True)
 
-print(' [*] Waiting for messages. To exit press CTRL+C')
-channel.start_consuming()
+        print(' [*] Waiting for messages. To exit press CTRL+C')
+        channel.start_consuming()
+        
+    def consume(self, ch, method, properties, body):
+        print(' [x] Received {0!r}'.format(body) )
+        measurements = json.loads(body)
+        try: 
+            ws = create_connection(self.server_socket)
+            ws.send(json.dumps({'msg_type':'measurements', 'data': measurements}))
+            ws.close()
+        except:
+            return
+
+if __name__ == "__main__":
+    connector = MessageQueueConnector(args.mq_host, args.server_socket)
+    connector.run()

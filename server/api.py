@@ -1,8 +1,9 @@
 import json
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api, reqparse, abort
+
 from . import app, db
-from .models import Node, Sensor
+from .models import Node, Sensor, Measurement
 
 api = Api(app)
 
@@ -69,3 +70,22 @@ class SensorList(Resource):
 
 api.add_resource(SensorList, '/api/sensorlist/', 
     methods=['POST', 'GET', 'DELETE'])
+
+
+class MeasurementList(Resource):
+    def get(self):
+        return jsonify(json_list=[i.serialize for i in Measurement.query.all()])
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('value_type')
+        parser.add_argument('unit')
+        parser.add_argument('value')
+        args = parser.parse_args()
+        measurement = Measurement(**args)
+        db.session.add(measurement)
+        db.session.commit()
+        return 'Measurement added', 201
+
+api.add_resource(MeasurementList, '/api/measurementslist/', 
+    methods=['POST', 'GET'])
