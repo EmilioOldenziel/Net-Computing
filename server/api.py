@@ -1,6 +1,7 @@
 import json
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api, reqparse, abort
+
 from . import app, db
 from .models import Node, Sensor, Measurement
 
@@ -83,3 +84,6 @@ class MeasurementList(Resource):
         db.session.add(measurement)
         db.session.commit()
         return 'Measurement added', 201
+
+api.add_resource(MeasurementList, '/api/measurementslist/', 
+    methods=['POST', 'GET'])

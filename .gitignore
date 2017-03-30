@@ -14,3 +14,4 @@
 venv/
 database.db
 OpenHardwareMonitor/
+config.py
