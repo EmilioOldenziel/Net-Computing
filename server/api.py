@@ -1,4 +1,5 @@
 import json
+import platform
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api, reqparse, abort
 
@@ -27,7 +28,8 @@ class NodeList(Resource):
         db.session.add(new_node)
         db.session.commit()
         response =  jsonify(node_id=new_node.id,
-                            q_host='localhost',
+                            # q_host='localhost',
+                            q_host='145.97.145.188',
                             q_name='mq')
         response.status_code = 201
         return response

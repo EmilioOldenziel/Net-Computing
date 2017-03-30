@@ -126,7 +126,14 @@ class Node:
         self.node_id = node_id
         self.queue_name = queue_name
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=given_host))
+            pika.ConnectionParameters(
+                host=given_host,
+                credentials=pika.credentials.PlainCredentials(
+                    username='awesomeuser',
+                    password='userisawesome'
+                )
+            )
+        )
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=queue_name)
 
@@ -163,9 +170,6 @@ def get_ip_address():
     return "my_awesome_ip"
 
 def setup_node(name, host):
-    # Start actuator
-    subprocess.Popen (["python", "actuator.py"])
-
     node_ip = get_ip_address()
     host = host + '/api/nodelist/'
     data = {
@@ -177,6 +181,8 @@ def setup_node(name, host):
     sd = json.loads(r.text)
     
     if r.status_code == 201:
+        # Start actuator
+        subprocess.Popen (["python", "actuator.py"])
         return Node(sd['q_host'], sd['q_name'], sd['node_id'])
     if r.status_code == 403 and sd['node_id'] == None:
         exit("name already in use")

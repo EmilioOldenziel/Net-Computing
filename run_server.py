@@ -1,4 +1,3 @@
-import Pyro4.naming
 import socket
 from gevent import monkey
 monkey.patch_all()
@@ -12,7 +11,7 @@ if __name__ == '__main__':
     from geventwebsocket import WebSocketServer
 
     WebSocketServer(
-        (IP (), 5000),
+        ('0.0.0.0', 5000),
         resources
     ).serve_forever()
 
