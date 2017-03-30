@@ -1,6 +1,9 @@
 import os
-import platform
+import socket
 import Pyro4        # RMI
+
+def IP ():
+	return socket.gethostbyname(socket.gethostname())
 
 @Pyro4.expose                               # Expose this class to RMI
 @Pyro4.behavior(instance_mode="single")     # Single instance per node
@@ -16,7 +19,7 @@ class Actuator:
 			{
 				Actuator: "actuator"
 			},
-			host = platform.node (),
+			host = IP (),
 			ns = True
 			)
 

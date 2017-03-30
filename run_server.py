@@ -1,4 +1,3 @@
-import Pyro4.naming
 import socket
 from gevent import monkey
 monkey.patch_all()
@@ -6,7 +5,8 @@ monkey.patch_all()
 from server import resources
 
 def IP ():
-	return socket.gethostbyname(socket.gethostname())
+	return "0.0.0.0"
+	# return socket.gethostbyname(socket.gethostname())
 
 if __name__ == '__main__':
     from geventwebsocket import WebSocketServer
