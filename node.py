@@ -115,7 +115,7 @@ def _get_datacollector():
         elif sys.platform.startswith('win32'):
             return WindowsDataCollector()
         elif sys.platform.startswith('darwin'):
-            return LinuxDataCollector()
+            return RandomDataCollector()
         raise Exception("Unsupported platform")
 
     raise Exception("Invalid sensor")

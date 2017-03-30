@@ -12,6 +12,8 @@ class Actuator:
 	def shut_down (self):
 		os.system ("shutdown -h now")
 
+	def play_sound (self):
+		os.system ("mplayer 0477.wav")
 
 	# Starts the pyro daemon
 	def start (self):
