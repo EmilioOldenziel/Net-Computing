@@ -33,6 +33,7 @@ class NodeList(Resource):
         # return setup for mq
         response =  jsonify(
             node_id=node.id,
+            node_ip=node.ip,
             q_host=app.config.get('MQ_HOST', ''),
             q_name=app.config.get('MQ_NAME', '')
         )

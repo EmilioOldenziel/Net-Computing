@@ -11,6 +11,7 @@ if sys.platform.startswith('win32'):
 parser = argparse.ArgumentParser(description='Simple RMI actuator.')
 parser.add_argument('name',                   type=str, default='name',           help='The name of the node')
 parser.add_argument('host',                   type=str, default='localhost',      help='The host to connect with')
+parser.add_argument('ownip', type=str, default='localhost', help='The IP address on which the actuator should host itself')
 args = parser.parse_args ()
 
 def IP ():
@@ -33,8 +34,8 @@ class Actuator:
 			os.system ('mplayer 0477.wav')
 
 	# Starts the pyro daemon
-	def start (self, name, host):
-		daemon = Pyro4.Daemon ()
+	def start (self, name, host, ownip):
+		daemon = Pyro4.Daemon (host=ownip)
 		uri = daemon.register (Actuator)
 		ns = Pyro4.locateNS (host)
 		ns.register ('actuator.' + name, uri)
@@ -44,7 +45,7 @@ class Actuator:
 
 def main ():
 	actuator = Actuator ()
-	actuator.start (args.name, args.host)
+	actuator.start (args.name, args.host, args.ownip)
 
 
 if __name__ == "__main__":

@@ -194,6 +194,11 @@ def setup_node(name, host, mq_user, mq_password):
     if r.status_code == 403 and sd['node_id'] == None:
         exit("name already in use")
 
+    # Start actuator with name and host.
+    p = subprocess.Popen (["python", "actuator.py", args.name, args.host, sd['node_ip']])
+    node.run()
+    p.kill()
+
 
 if __name__ == "__main__":
     node = setup_node(
@@ -202,7 +207,4 @@ if __name__ == "__main__":
         args.mq_user, 
         args.mq_password
     )
-    # Start actuator with name and host.
-    p = subprocess.Popen (["python", "actuator.py", args.name, args.host])
-    node.run()
-    p.kill()
+
