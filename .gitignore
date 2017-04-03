@@ -8,9 +8,7 @@
 *Maikel*
 .vscode
 *.pyc
-
-
-
+*/*.pyc
 venv/
 database.db
 OpenHardwareMonitor/
