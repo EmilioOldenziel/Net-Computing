@@ -27,6 +27,8 @@ class Actuator:
 	def play_sound (self):
 		if sys.platform.startswith('win32'):
 			winsound.PlaySound('0477.wav', winsound.SND_FILENAME)
+		elif sys.platform.startswith('linux'):
+			os.system('mpv 0477.wav')
 		else:
 			os.system ('mplayer 0477.wav')
 
@@ -49,7 +51,7 @@ class Actuator:
 
 def main ():
 	actuator = Actuator ()
-	actuator.start ()
+	actuator.start (args.name, args.host)
 
 
 if __name__ == "__main__":
