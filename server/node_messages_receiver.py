@@ -7,13 +7,16 @@ from websocket import create_connection
 
 
 parser = argparse.ArgumentParser(description='Process message queue data to database')
-parser.add_argument('mq_host',                type=str, nargs="?", default='localhost',                  help='The host of the message queue')
-parser.add_argument('server_socket',            type=str, nargs="?", default='ws://localhost:5000/measurements',      help='The host of the database server')
+parser.add_argument('mq_host',        type=str, nargs="?", default='localhost',                         help='The host of the message queue')
+parser.add_argument('mq_name',        type=str, nargs="?", default='mq',                                help='The name of the message queue')
+parser.add_argument('mq_user',        type=str, nargs="?", default='',                                  help='The username of the message queue')
+parser.add_argument('mq_password',    type=str, nargs="?", default='',                                  help='The password of the message queue')
+parser.add_argument('server_socket',  type=str, nargs="?", default='ws://localhost:5000/measurements',  help='The host of the database server')
 args = parser.parse_args()
 
 
 class MessageQueueConnector():
-    def __init__(self, mq_host, server_socket):
+    def __init__(self, mq_host, mq_name, mq_user, mq_password, server_socket):
         self.mq_host = mq_host
         self.server_socket = server_socket
 
@@ -40,5 +43,11 @@ class MessageQueueConnector():
             return
 
 if __name__ == "__main__":
-    connector = MessageQueueConnector(args.mq_host, args.server_socket)
+    connector = MessageQueueConnector(
+        args.mq_host,
+        args.mq_name,
+        args.mq_user,
+        args.mq_password,
+        args.server_socket
+    )
     connector.run()

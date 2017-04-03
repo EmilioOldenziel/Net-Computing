@@ -58,6 +58,8 @@ var temperature_chart = new Chart(temperature_chart_element, {
     type: 'line',
     data: temperature_data,
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         gridLines: {
             drawBorder: true
         },
@@ -87,5 +89,5 @@ function initMeasuretmentSocket(){
 initMeasuretmentSocket();
 
 document.getElementById("noise-button").addEventListener("click", function(){
-    window.measurement_socket.callRemoteMethod(1, 'noise');
+    window.measurement_socket.callRemoteMethod(21, 'noise');
 });

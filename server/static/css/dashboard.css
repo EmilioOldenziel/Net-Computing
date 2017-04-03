@@ -8,5 +8,7 @@ header .filter{
 }
 
 div#main .data{
-    max-height: 50vh;
+    position: relative;
+    height: 75vh;
+    max-height: 50vw;
 }

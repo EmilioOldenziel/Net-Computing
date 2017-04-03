@@ -27,6 +27,8 @@ class Actuator:
 	def play_sound (self):
 		if sys.platform.startswith('win32'):
 			winsound.PlaySound('0477.wav', winsound.SND_FILENAME)
+		elif sys.platform.startswith('linux'):
+			os.system('mpv 0477.wav')
 		else:
 			os.system ('mplayer 0477.wav')
 

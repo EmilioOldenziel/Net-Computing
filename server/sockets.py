@@ -8,7 +8,7 @@ import socket
 from geventwebsocket import WebSocketApplication
 
 from . import app, db
-from .models import Measurement
+from .models import Measurement, Node
 
 def IP ():
     return socket.gethostbyname(socket.gethostname())

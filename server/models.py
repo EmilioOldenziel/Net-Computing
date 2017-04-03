@@ -30,9 +30,10 @@ class Node(db.Model):
 class Sensor(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(30), unique=True)
-    node = db.Column(db.Integer(), db.ForeignKey('node.id'))
+    node_id = db.Column(db.Integer(), db.ForeignKey('node.id'))
     updated = db.Column(db.DateTime())
     created = db.Column(db.DateTime())
+    node = db.relationship('Node', backref='sensors')
 
     @property
     def serialize(self):
@@ -52,7 +53,8 @@ class Sensor(db.Model):
 
 class Measurement(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    sensor = db.Column(db.Integer(), db.ForeignKey('sensor.id'))
+    sensor_id = db.Column(db.Integer(), db.ForeignKey('sensor.id'))
     value_type = db.Column(db.String(10), nullable=False)
     unit = db.Column(db.String(3), nullable=False)
     value = db.Column(db.Float(), nullable=False)
+    sensor = db.relationship('Sensor', backref='measurements')
