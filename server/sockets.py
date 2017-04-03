@@ -10,12 +10,14 @@ from geventwebsocket import WebSocketApplication
 from . import app, db
 from .models import Measurement, Node
 
-def IP ():
-    return socket.gethostbyname(socket.gethostname())
 
-async def call_remote_method(host, method):
+async def call_remote_method(host, method, node=None):
     with Pyro4.locateNS(host=host) as ns:
-        daemons = [Pyro4.Proxy (uri) for d, uri in ns.list(prefix = "actuator").items()]
+        daemons = []
+        for daemon, uri in ns.list (prefix = "actuator").items ():
+            if node and daemon != 'actuator.' + node:
+                continue
+            daemons.append (Pyro4.Proxy (uri))
 
     for d in daemons:
         if method == 'noise':
@@ -23,24 +25,20 @@ async def call_remote_method(host, method):
         elif method == 'shutdown':
             d.shut_down ()
 
-
 class MeasurementsApplication(WebSocketApplication):
     def on_message(self, message):
         if message is None:
             return
-
-        app.app_context()
         
         message = json.loads(message)
 
         if message['msg_type'] == 'measurements':
-            self.process_measurements(message['data'])
+            with app.app_context():
+                self.process_measurements(message['data'])
 
         elif message['msg_type'] == 'method_call':
-            host = IP ()
-            method = message['data']['method']
-            loop = asyncio.new_event_loop()
-            loop.run_until_complete(call_remote_method(host, method))
+            with app.app_context():
+                self.process_method_call(message['data'])
 
     def broadcast(self, data):
         for client in self.ws.handler.server.clients.values():
@@ -59,3 +57,14 @@ class MeasurementsApplication(WebSocketApplication):
             'msg_type': 'update_clients',
             'data': data['measurements']
         })
+
+    def process_method_call(self, data):
+        host = app.config.get('MQ_HOST', 'localhost')
+        method = data['method']
+        loop = asyncio.new_event_loop()
+        if int(data['node_id']) == -1:
+            loop.run_until_complete(call_remote_method(host, method))
+        else:
+            node = Node.query.get(int(data['node_id']))
+            loop.run_until_complete(call_remote_method(host, method, node.name))
+
