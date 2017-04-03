@@ -124,8 +124,9 @@ def _get_datacollector():
 
 
 class Node:
-    def __init__(self, node_id, mq_host, mq_name, mq_user, mq_password):
+    def __init__(self, node_id, node_ip, mq_host, mq_name, mq_user, mq_password):
         self.node_id = node_id
+        self.node_ip = node_ip
         self.mq_name = mq_name
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
@@ -165,19 +166,9 @@ class Node:
         self.connection.close()
 
 
-def get_ip_address():
-    """
-        TODO: implement ip return
-    """
-    return "my_awesome_ip"
-
 def setup_node(name, host, mq_user, mq_password):
-    node_ip = get_ip_address()
     host = host + '/api/nodelist/'
-    data = {
-        'name': name,
-        'ip': node_ip
-    }
+    data = { 'name': name }
     r = requests.post(host, data)
     print(r.text)
     sd = json.loads(r.text)
@@ -185,7 +176,8 @@ def setup_node(name, host, mq_user, mq_password):
     if r.status_code == 201:
         # Start actuator
         return Node(
-            sd['node_id'], 
+            sd['node_id'],
+            sd['node_ip'], 
             sd['q_host'], 
             sd['q_name'], 
             mq_user, 
@@ -194,10 +186,6 @@ def setup_node(name, host, mq_user, mq_password):
     if r.status_code == 403 and sd['node_id'] == None:
         exit("name already in use")
 
-    # Start actuator with name and host.
-    p = subprocess.Popen (["python", "actuator.py", args.name, args.host, sd['node_ip']])
-    node.run()
-    p.kill()
 
 
 if __name__ == "__main__":
@@ -207,4 +195,8 @@ if __name__ == "__main__":
         args.mq_user, 
         args.mq_password
     )
+    # Start actuator with name and host.
+    p = subprocess.Popen (["python", "actuator.py", args.name, args.host, node.node_ip])
+    node.run()
+    p.kill()
 
