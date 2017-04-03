@@ -3,12 +3,15 @@ from __future__ import unicode_literals, division
 import json
 import asyncio
 import Pyro4
+import socket
 
 from geventwebsocket import WebSocketApplication
 
 from . import app, db
 from .models import Measurement
 
+def IP ():
+    return socket.gethostbyname(socket.gethostname())
 
 async def call_remote_method(host, method):
     with Pyro4.locateNS(host=host) as ns:
@@ -34,7 +37,7 @@ class MeasurementsApplication(WebSocketApplication):
             self.process_measurements(message['data'])
 
         elif message['msg_type'] == 'method_call':
-            host = 'localhost'
+            host = IP ()
             method = message['data']['method']
             loop = asyncio.new_event_loop()
             loop.run_until_complete(call_remote_method(host, method))
