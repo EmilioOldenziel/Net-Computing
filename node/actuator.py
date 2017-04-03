@@ -26,13 +26,19 @@ class Actuator:
 
 	# Starts the pyro daemon
 	def start (self):
-		Pyro4.Daemon.serveSimple(
-			{
-				Actuator: "actuator"
-			},
-			host = IP (),
-			ns = True
-			)
+		# Pyro4.Daemon.serveSimple(
+		# 	{
+		# 		Actuator: "actuator"
+		# 	},
+		# 	host = IP (),
+		# 	ns = True
+		# 	)
+		daemon = Pyro4.Daemon ()
+		uri = daemon.register (Actuator)
+		ns = Pyro4.locateNS(IP ())
+		ns.register ('actuator', uri)
+
+		daemon.requestLoop ()
 
 
 def main ():
