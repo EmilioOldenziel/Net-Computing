@@ -1,7 +1,8 @@
 \documentclass{article}
-\usepackage[margin=2cm]{geometry}
+\usepackage[margin=2.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{parskip}
 \hypersetup{
 	colorlinks=true,
 	linkcolor=blue,
@@ -61,7 +62,9 @@
 	%explain why we used one central server with workers instead of p2p
 	We chose to have a central server so that we have one point that 
 	does the `bookkeeping' of which nodes are monitored, but also to 
-	make it simpler that nodes and client connect to the same point.
+	make it simpler that nodes and client connect to the same point. 
+	Furthermore, there is no need for communication between individual nodes, 
+	as this project focuses on a centralized monitoring system. 
 	
 	%Why we chose python
 	The language that we used for this project is Python, we chose that 
@@ -119,10 +122,15 @@
 	
 	For Message queueing \href{https://www.rabbitmq.com}{RabbitMQ} is used, to 
 	use RabbitMQ with python we used \href{https://github.com/pika/pika}{pika}, 
-	which is a Python interface for RabbitMQ. 
+	which is a Python interface for RabbitMQ. The python queue handler connects
+	to the rest of the application via websockets, to push the queued data to 
+	the front end dashboard and database.
 
-	The front end connects to the central server using websockets. These 
-	websockets simply send all data from the server to the frontend.
+	The front end dasboard is loaded from the server as a simple HTML page via 
+	HTTP. The dashboard javascript then connects to the central server using 
+	websockets. These websockets simply send all data from the server to the 
+	frontend and are also used to invoke methods on the nodes themselves
+	from the dashboard.
 
 	Finally, in order to invoke a method on a node itself we created a simple 
 	python class that is exposed to the name pyro name server. In other words, 
@@ -133,12 +141,23 @@
 	Some difficulties we experienced were mainly setup related. Getting rabbitmq
 	to allow for external connections by removing loopback restrictions of the 
 	default user, and realising the pyro name server is hosted on localhost by 
-	default. Furthermore finding the proper libraries for everything that we 
+	default. 
+
+	Furthermore finding the proper libraries for everything that we 
 	wanted to do wasn't a breeze at all. Although many were relatively easy to 
 	find, we still couldn't find a single Python library that allows for easy 
-	access to hardware sensors in MacOS. Developing the product and setting up 
-	the idea was a rather straightforward process, and overall we are quite 
-	satisfied.
+	access to hardware sensors in MacOS. 
+
+	When setting up websockets we also experienced a few difficulties. The 
+	development servers provided with the Flask framework do not provide any
+	options for websockets. Therefore, we had to set it up to work together with
+	the gevent python networking library, which does support sockets. This makes
+	the testing server slow and harder to debug, but once deployed on production 
+	platforms, most of these issues are dealt with and resolved by for example 
+	Apache or NGINX.
+
+	Developing the product and setting up the idea was a rather straightforward 
+	process, and overall we are quite satisfied.
 
 \section{Conclusion}
 	In this project we wanted to build something that was simple but had all
