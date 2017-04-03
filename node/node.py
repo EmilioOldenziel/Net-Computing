@@ -203,6 +203,6 @@ if __name__ == "__main__":
         args.mq_password
     )
     # Start actuator with name and host.
-    p = subprocess.Popen (["python", "actuator.py", name, host])
+    p = subprocess.Popen (["python", "actuator.py", args.name, args.host])
     node.run()
     p.kill()

@@ -9,8 +9,8 @@ if sys.platform.startswith('win32'):
 
 
 parser = argparse.ArgumentParser(description='Simple RMI actuator.')
-parser.add_argument('name',                   type=str, default='name',                      help='The name of the node')
-parser.add_argument('host',                   type=str, nargs="?", default='localhost',      help='The host to connect with')
+parser.add_argument('name',                   type=str, default='name',           help='The name of the node')
+parser.add_argument('host',                   type=str, default='localhost',      help='The host to connect with')
 args = parser.parse_args ()
 
 def IP ():
@@ -32,24 +32,17 @@ class Actuator:
 
 	# Starts the pyro daemon
 	def start (self, name, host):
-		# Pyro4.Daemon.serveSimple(
-		# 	{
-		# 		Actuator: "actuator"
-		# 	},
-		# 	host = IP (),
-		# 	ns = True
-		# 	)
 		daemon = Pyro4.Daemon ()
 		uri = daemon.register (Actuator)
 		ns = Pyro4.locateNS (host)
-		ns.register (name, uri)
+		ns.register ('actuator.' + name, uri)
 
 		daemon.requestLoop ()
 
 
 def main ():
 	actuator = Actuator ()
-	actuator.start ()
+	actuator.start (args.name, args.host)
 
 
 if __name__ == "__main__":
