@@ -7,7 +7,7 @@ import Pyro4
 from geventwebsocket import WebSocketApplication
 
 from . import app, db
-from .models import Measurement
+from .models import Measurement, Node
 
 
 async def call_remote_method(host, method):
@@ -34,7 +34,8 @@ class MeasurementsApplication(WebSocketApplication):
             self.process_measurements(message['data'])
 
         elif message['msg_type'] == 'method_call':
-            host = 'localhost'
+            node = Node.query.get(message['data']['node_id'])
+            host = node.ip
             method = message['data']['method']
             loop = asyncio.new_event_loop()
             loop.run_until_complete(call_remote_method(host, method))
