@@ -23,7 +23,7 @@ from datetime import datetime as dt
 
 parser = argparse.ArgumentParser(description='Read sensor data')
 parser.add_argument('name',                   type=str,                                                  help='The name of the node')
-parser.add_argument('host',                   type=str, nargs="?", default='http://localhost:5000',      help='The host to connect with')
+parser.add_argument('host',                   type=str, nargs="?", default='localhost',                  help='The host to connect with')
 parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The datasource to use (sytem or random)')
 parser.add_argument('-u', '--mq-user',        type=str, default='',                                      help='The username to use to connect wit message queue')
 parser.add_argument('-p', '--mq-password',    type=str, default='',                                      help='The password to use to connect wit message queue')
@@ -198,10 +198,11 @@ def setup_node(name, host, mq_user, mq_password):
 if __name__ == "__main__":
     node = setup_node(
         args.name, 
-        args.host,
+        'http://' + args.host + ':5000',
         args.mq_user, 
         args.mq_password
     )
-    p = subprocess.Popen (["python", "actuator.py"])
+    # Start actuator with name and host.
+    p = subprocess.Popen (["python", "actuator.py", name, host])
     node.run()
     p.kill()

@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import socket
@@ -6,6 +7,11 @@ import Pyro4        # RMI
 if sys.platform.startswith('win32'):
     import winsound
 
+
+parser = argparse.ArgumentParser(description='Simple RMI actuator.')
+parser.add_argument('name',                   type=str, default='name',                      help='The name of the node')
+parser.add_argument('host',                   type=str, nargs="?", default='localhost',      help='The host to connect with')
+args = parser.parse_args ()
 
 def IP ():
 	return socket.gethostbyname(socket.gethostname())
@@ -25,7 +31,7 @@ class Actuator:
 			os.system ('mplayer 0477.wav')
 
 	# Starts the pyro daemon
-	def start (self):
+	def start (self, name, host):
 		# Pyro4.Daemon.serveSimple(
 		# 	{
 		# 		Actuator: "actuator"
@@ -35,8 +41,8 @@ class Actuator:
 		# 	)
 		daemon = Pyro4.Daemon ()
 		uri = daemon.register (Actuator)
-		ns = Pyro4.locateNS(IP ())
-		ns.register ('actuator', uri)
+		ns = Pyro4.locateNS (host)
+		ns.register (name, uri)
 
 		daemon.requestLoop ()
 
