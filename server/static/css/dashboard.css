@@ -3,11 +3,7 @@ html, body{
     max-width: 100%;
 }
 
-header .filter{
-    float: right;
-}
-
-div#main .data{
+div#main .chart-wrapper{
     position: relative;
     height: 75vh;
     max-height: 50vw;

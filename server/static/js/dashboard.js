@@ -52,6 +52,30 @@ function MeasurementsSocket() {
     }
 }
 
+
+var selected_node = -1;
+
+document.getElementById("node-select").addEventListener("click", function(){
+    window.selected_node = this.options[this.selectedIndex].value;
+});
+
+fetch('/api/nodelist/')
+.then(function(response) {
+    return response.json();
+})
+.then(function(data) {
+    data = data.json_list;
+    var select_element = document.getElementById("node-select");
+
+    for (var idx = 0; idx < data.length; idx++) {
+        var option_element = document.createElement('option');
+        option_element.value = data[idx].id;
+        option_element.innerHTML = data[idx].name;
+        select_element.appendChild(option_element);
+    }
+});
+
+
 var temperature_chart_element = document.getElementById("temperature-chart");
 var temperature_data = {datasets:[default_dataset]};
 var temperature_chart = new Chart(temperature_chart_element, {
@@ -89,5 +113,6 @@ function initMeasuretmentSocket(){
 initMeasuretmentSocket();
 
 document.getElementById("noise-button").addEventListener("click", function(){
-    window.measurement_socket.callRemoteMethod(21, 'noise');
+    console.log(window.selected_node);
+    window.measurement_socket.callRemoteMethod(window.selected_node, 'noise');
 });
