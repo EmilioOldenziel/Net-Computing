@@ -24,7 +24,9 @@ from datetime import datetime as dt
 parser = argparse.ArgumentParser(description='Read sensor data')
 parser.add_argument('name',                   type=str,                                                  help='The name of the node')
 parser.add_argument('host',                   type=str, nargs="?", default='http://localhost:5000',      help='The host to connect with')
-parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The TXT email source file. (default: mail.txt)')
+parser.add_argument('-s', '--sensor',         type=str, default='system',                                help='The datasource to use (sytem or random)')
+parser.add_argument('-u', '--mq-user',        type=str, default='',                                      help='The username to use to connect wit message queue')
+parser.add_argument('-p', '--mq-password',    type=str, default='',                                      help='The password to use to connect wit message queue')
 args = parser.parse_args()
 
 class LinuxDataCollector:
@@ -122,20 +124,20 @@ def _get_datacollector():
 
 
 class Node:
-    def __init__(self, given_host, queue_name, node_id):
+    def __init__(self, node_id, mq_host, mq_name, mq_user, mq_password):
         self.node_id = node_id
-        self.queue_name = queue_name
+        self.mq_name = mq_name
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                host=given_host,
+                host=mq_host,
                 credentials=pika.credentials.PlainCredentials(
-                    username='awesomeuser',
-                    password='userisawesome'
+                    username=mq_user,
+                    password=mq_password
                 )
             )
         )
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=queue_name)
+        self.channel.queue_declare(queue=mq_name)
 
         self.datacollector = _get_datacollector()
 
@@ -152,7 +154,7 @@ class Node:
 
             self.channel.basic_publish(
                 exchange='',
-                routing_key=self.queue_name,
+                routing_key=self.mq_name,
                 body=json.dumps(message)
             )
 
@@ -169,7 +171,7 @@ def get_ip_address():
     """
     return "my_awesome_ip"
 
-def setup_node(name, host):
+def setup_node(name, host, mq_user, mq_password):
     node_ip = get_ip_address()
     host = host + '/api/nodelist/'
     data = {
@@ -182,12 +184,24 @@ def setup_node(name, host):
     
     if r.status_code == 201:
         # Start actuator
-        subprocess.Popen (["python", "actuator.py"])
-        return Node(sd['q_host'], sd['q_name'], sd['node_id'])
+        return Node(
+            sd['node_id'], 
+            sd['q_host'], 
+            sd['q_name'], 
+            mq_user, 
+            mq_password
+        )
     if r.status_code == 403 and sd['node_id'] == None:
         exit("name already in use")
 
 
 if __name__ == "__main__":
-    node = setup_node(args.name, args.host)
+    node = setup_node(
+        args.name, 
+        args.host,
+        args.mq_user, 
+        args.mq_password
+    )
+    p = subprocess.Popen (["python", "actuator.py"])
     node.run()
+    p.kill()

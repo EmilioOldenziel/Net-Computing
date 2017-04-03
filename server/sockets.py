@@ -19,6 +19,9 @@ class MeasurementsApplication(WebSocketApplication):
         if message['msg_type'] == 'measurements':
             self.process_measurements(message['data'])
 
+        elif message['msg_type'] == 'method_call':
+            pass
+
     def broadcast(self, data):
         for client in self.ws.handler.server.clients.values():
             client.ws.send(json.dumps(data))

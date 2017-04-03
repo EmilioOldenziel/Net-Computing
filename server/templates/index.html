@@ -1,69 +1,35 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="mobileoptimized" content="0">
+    <title>Dashboard &ndash; Serverpark monitoring system</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" type="text/css">
 </head>
 <body>
-
-    <div id="sse">
-        <a href="javascript:MeasurementsSocket()">Run WebSocket</a>
+    <header>
+        <h1>Dashboard</h1>
+        <div class="filter">
+            <label for="node-select">Node</label>
+            <select class="u-full-width" id="node-select">
+                <option value="Option 1">Questions</option>
+                <option value="Option 2">Admiration</option>
+                <option value="Option 3">Can I get your number?</option>
+            </select>
+        </div>
+    </header>
+    <div id="main">
+        <div class="controls">
+            <a href="#" class="button" id="noise-button">Make noise</a>
+        </div>
+        <div class="data">
+            <canvas id="temperature-chart"></canvas>
+        </div>
     </div>
-    <div id="readings">
-    <canvas id="myChart" width="400" height="400"></canvas>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
-    <script type="text/javascript">
-        var ctx = document.getElementById("myChart");
-        var chart_data = {datasets:[{label:"reading1", data:[{x:Date.now(), y:0}]}]};
-        var test_chart = new Chart(ctx, {
-                    type: 'line',
-                    data: chart_data,
-                    options: {
-                        scales: {
-                            xAxes: [{
-                                type: 'linear',
-                                position: 'bottom'
-                            }]
-                        }
-                    }
-                });
-
-        function UpdateChart(data){
-            console.log(data);
-            chart_data.datasets[0].data.push({
-                x: Date.now(), 
-                y: data[0].value
-            });
-            window.test_chart.data = data;
-            window.test_chart.update();
-        }
-
-        function MeasurementsSocket() {
-            if ("WebSocket" in window) {               
-                // Let us open a web socket
-                var ws = new WebSocket("ws://" + window.location.host + "/measurements");
-
-                ws.onopen = function() {
-
-                };
-
-                ws.onmessage = function (evt) { 
-                    var received_msg = JSON.parse(evt.data);
-                    console.log(received_msg);
-                    if (received_msg.msg_type === 'update_clients'){
-                        UpdateChart(received_msg.data);
-                    }
-                };
-
-                ws.onclose = function() { 
-                // websocket is closed.
-                alert("Connection is closed..."); 
-                };
-            } else {
-                // The browser doesn't support WebSocket
-                alert("WebSocket NOT supported by your Browser!");
-            }
-        }
-    </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>

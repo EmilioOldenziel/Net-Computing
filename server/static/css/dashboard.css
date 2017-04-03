@@ -1,0 +1,12 @@
+html, body{
+    min-height: 100%;
+    max-width: 100%;
+}
+
+header .filter{
+    float: right;
+}
+
+div#main .data{
+    max-height: 50vh;
+}
