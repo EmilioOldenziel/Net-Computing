@@ -38,7 +38,7 @@ function MeasurementsSocket() {
     };
 
     this.ws.onclose = function() {
-        setTimeout(MeasurementsSocket, 1000);
+        setTimeout(initMeasuretmentSocket, 1000);
     };
 
     this.callRemoteMethod = function(node_id, method){
@@ -80,7 +80,11 @@ var temperature_chart = new Chart(temperature_chart_element, {
     }
 });
 
-var measurement_socket = new MeasurementsSocket();
+function initMeasuretmentSocket(){
+    window.measurement_socket = new MeasurementsSocket();    
+}
+
+initMeasuretmentSocket();
 
 document.getElementById("noise-button").addEventListener("click", function(){
     window.measurement_socket.callRemoteMethod(1, 'noise');
