@@ -2,6 +2,7 @@
 import argparse
 import json
 import pika
+import codecs
 
 from websocket import create_connection
 
@@ -34,7 +35,7 @@ class MessageQueueConnector():
         
     def consume(self, ch, method, properties, body):
         print(' [x] Received {0!r}'.format(body) )
-        measurements = json.loads(body)
+        measurements = json.loads(body.decode('utf-8'))
         try: 
             ws = create_connection(self.server_socket)
             ws.send(json.dumps({'msg_type':'measurements', 'data': measurements}))
