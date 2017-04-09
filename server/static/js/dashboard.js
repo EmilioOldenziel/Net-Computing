@@ -2,18 +2,54 @@ var default_dataset = {
     label:"label", 
     pointRadius: 1,
     pointHoverRadius: 5,
-    data: [{x:Date.now(), y:null}]
+    fill: false,
+    data: []
 };
 
-function UpdateChart(data){
-    console.log(data);
-    temperature_data.datasets[0].data.push({
-        x: Date.now(), 
-        y: data[0].value
+function AppendToOrCreateDataset(name, timestamp, value){
+    var updated = false;
+    for (var i=0; i<window.temperature_data.datasets.length; i++){
+        if (window.temperature_data.datasets[i].label != name)
+            continue;
+        window.temperature_data.datasets[i].data.push({
+            x: timestamp,
+            y: value
+        });
+        updated = true;
+    }
+
+    if (updated) 
+        return;
+    
+    console.log(window.default_dataset);
+    new_dataset = JSON.parse(JSON.stringify(window.default_dataset));
+    new_dataset.label = name;
+
+    var r = Math.floor(Math.random() * 255);
+    var g = Math.floor(Math.random() * 255);
+    var b = Math.floor(Math.random() * 255);
+    new_dataset.borderColor =  "rgb(" + r + "," + g + "," + b + ")";
+    new_dataset.data.push({
+        x: timestamp,
+        y: value
     });
-    if (temperature_data.datasets[0].data.length > 60*15)
-        temperature_data.datasets[0].data.splice(0, 1);
-    window.temperature_chart.data = data;
+    window.temperature_data.datasets.push(new_dataset);
+}
+
+function UpdateChart(data){
+    
+    for (var i=0; i<data.measurements.length; i++){
+        if(window.selected_node != -1 && data.node_id != window.selected_node)
+            continue;
+
+        AppendToOrCreateDataset(
+            data.node.name + ' ' + data.measurements[i].label,
+            data.timestamp,
+            data.measurements[i].value,
+        );
+    }
+    console.log(window.temperature_data);
+    window.temperature_chart.data = window.temperature_data;
     window.temperature_chart.update();
 }
 
@@ -55,8 +91,10 @@ function MeasurementsSocket() {
 
 var selected_node = -1;
 
-document.getElementById("node-select").addEventListener("click", function(){
+document.getElementById("node-select").addEventListener("change", function(){
     window.selected_node = this.options[this.selectedIndex].value;
+    window.temperature_chart.destroy();
+    initChart();
 });
 
 fetch('/api/nodelist/')
@@ -75,42 +113,44 @@ fetch('/api/nodelist/')
     }
 });
 
-
-var temperature_chart_element = document.getElementById("temperature-chart");
-var temperature_data = {datasets:[default_dataset]};
-var temperature_chart = new Chart(temperature_chart_element, {
-    type: 'line',
-    data: temperature_data,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        gridLines: {
-            drawBorder: true
-        },
-        scales: {
-            xAxes: [{
-                type: 'time',
-                position: 'bottom',
-                time: {
-                    unit: 'minute',
-                    unitStepSize: 5
-                }
-            }],
-            yAxes:[{
-                ticks:{
-                    suggestedMin: 0,
-                    suggestedMax: 100
-                }
-            }]
+function initChart(){
+    window.temperature_chart_element = document.getElementById("temperature-chart");
+    window.temperature_data = {datasets:[]};
+    window.temperature_chart = new Chart(temperature_chart_element, {
+        type: 'line',
+        data: temperature_data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            gridLines: {
+                drawBorder: true
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    position: 'bottom',
+                    time: {
+                        unit: 'minute',
+                        unitStepSize: 5
+                    }
+                }],
+                yAxes:[{
+                    ticks:{
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }]
+            }
         }
-    }
-});
+    });
+}
 
 function initMeasuretmentSocket(){
     window.measurement_socket = new MeasurementsSocket();    
 }
 
 initMeasuretmentSocket();
+initChart();
 
 document.getElementById("noise-button").addEventListener("click", function(){
     console.log(window.selected_node);

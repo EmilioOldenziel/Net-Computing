@@ -53,8 +53,9 @@ class Sensor(db.Model):
 
 class Measurement(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    sensor_id = db.Column(db.Integer(), db.ForeignKey('sensor.id'))
+    node_id = db.Column(db.Integer(), db.ForeignKey('node.id'))
     value_type = db.Column(db.String(10), nullable=False)
     unit = db.Column(db.String(3), nullable=False)
     value = db.Column(db.Float(), nullable=False)
-    sensor = db.relationship('Sensor', backref='measurements')
+    timestamp = db.Column(db.DateTime())
+    node = db.relationship('Node', backref='measurements')

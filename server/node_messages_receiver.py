@@ -2,7 +2,7 @@
 import argparse
 import json
 import pika
-import codecs
+# import codecs
 
 from websocket import create_connection
 
@@ -19,7 +19,9 @@ args = parser.parse_args()
 class MessageQueueConnector():
     def __init__(self, mq_host, mq_name, mq_user, mq_password, server_socket):
         self.mq_host = mq_host
+        self.mq_name = mq_name
         self.server_socket = server_socket
+        self.ws = create_connection(self.server_socket)
 
     def run(self):
         connection = pika.BlockingConnection(
@@ -27,8 +29,8 @@ class MessageQueueConnector():
         )
         channel = connection.channel()
         
-        channel.queue_declare(queue='mq')
-        channel.basic_consume(self.consume, queue='mq', no_ack=True)
+        channel.queue_declare(queue=self.mq_name)
+        channel.basic_consume(self.consume, queue=self.mq_name, no_ack=True)
 
         print(' [*] Waiting for messages. To exit press CTRL+C')
         channel.start_consuming()
@@ -37,11 +39,18 @@ class MessageQueueConnector():
         print(' [x] Received {0!r}'.format(body) )
         measurements = json.loads(body.decode('utf-8'))
         try: 
-            ws = create_connection(self.server_socket)
-            ws.send(json.dumps({'msg_type':'measurements', 'data': measurements}))
-            ws.close()
+            # ws = 
+            self.ws.send(json.dumps({'msg_type':'measurements', 'data': measurements}))
+            # ws.clos   e()
         except:
-            return
+            try:
+                self.ws.close()
+            except:
+                #  nothing to do
+                pass
+            finally:
+                self.ws = create_connection(self.server_socket)
+
 
 if __name__ == "__main__":
     connector = MessageQueueConnector(

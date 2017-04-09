@@ -18,7 +18,7 @@ elif sys.platform.startswith('win32'):
     sensors = wmi.WMI(namespace='root\OpenHardwareMonitor')
 
 from time import sleep
-from datetime import datetime as dt
+from datetime import datetime
 
 
 parser = argparse.ArgumentParser(description='Read sensor data')
@@ -148,8 +148,8 @@ class Node:
     def run(self):
         while True:
             message = {
-                'id': self.node_id,
-                'ts': str(dt.now()),
+                'node_id': self.node_id,
+                'timestamp':  datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'measurements': self.measure()
             }
 
@@ -159,7 +159,7 @@ class Node:
                 body=json.dumps(message)
             )
 
-            print(' [x] Sent measurement by {}'.format(message['id']))
+            print(' [x] Sent measurement by {}'.format(message['node_id']))
             
             sleep(1)
 

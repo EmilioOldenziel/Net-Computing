@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, division
 
 import json
+import datetime
 import asyncio
 import Pyro4
 import socket
@@ -45,17 +46,26 @@ class MeasurementsApplication(WebSocketApplication):
             client.ws.send(json.dumps(data))
 
     def process_measurements(self, data):
+        node = Node.query.get(int(data['node_id']))
+        if not node:
+            return
+
+        data['node'] = node.serialize
+
         for measurement in data['measurements']:
             m = Measurement(
+                node=node,
                 value_type=measurement['label'],
                 unit=measurement['unit'],
-                value=measurement['value']
+                value=measurement['value'],
+                timestamp=datetime.datetime.strptime(data['timestamp'], '%Y-%m-%d %H:%M:%S')
             )
             db.session.add(m)
+
         db.session.commit()
         self.broadcast({
             'msg_type': 'update_clients',
-            'data': data['measurements']
+            'data': data
         })
 
     def process_method_call(self, data):
