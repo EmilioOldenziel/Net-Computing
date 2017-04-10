@@ -1,9 +1,22 @@
+import subprocess
+import signal
+import sys
+
 import socket
 from gevent import monkey
 monkey.patch_all()
 
-import subprocess
 from server import resources, app
+
+pyro_ns_process = None
+
+def handler(signum, frame):
+    if pyro_ns_process:
+        pyro_ns_process.kill()
+    sys.exit()
+
+signal.signal(signal.SIGABRT, handler)
+signal.signal(signal.SIGINT, handler)
 
 def IP ():
 	return "0.0.0.0"
@@ -12,7 +25,7 @@ def IP ():
 if __name__ == '__main__':
     from geventwebsocket import WebSocketServer
 
-    p = subprocess.Popen (["pyro4-ns", "-n", app.config.get ('MQ_HOST')])
+    pyro_ns_process = subprocess.Popen (["pyro4-ns", "-n", app.config.get ('MQ_HOST')])
 
     WebSocketServer(
         ('0.0.0.0', 5000),
@@ -20,7 +33,7 @@ if __name__ == '__main__':
     ).serve_forever()
 
     node.run()
-    p.kill()
+    pyro_ns_process.kill()
 
     # from gevent import pywsgi
     # from geventwebsocket.handler import WebSocketHandler

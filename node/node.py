@@ -7,6 +7,7 @@ import platform
 import pprint
 import random
 import requests
+import signal
 import sys
 
 import subprocess   # Starting a process
@@ -186,6 +187,15 @@ def setup_node(name, host, mq_user, mq_password):
     if r.status_code == 403 and sd['node_id'] == None:
         exit("name already in use")
 
+actuator_process = None
+
+def handler(signum, frame):
+    if actuator_process:
+        actuator_process.kill()
+    sys.exit()
+
+signal.signal(signal.SIGABRT, handler)
+signal.signal(signal.SIGINT, handler)
 
 
 if __name__ == "__main__":
@@ -196,7 +206,7 @@ if __name__ == "__main__":
         args.mq_password
     )
     # Start actuator with name and host.
-    p = subprocess.Popen (["python", "actuator.py", args.name, args.host, node.node_ip])
+    actuator_process = subprocess.Popen (["python", "actuator.py", args.name, args.host, node.node_ip])
     node.run()
-    p.kill()
+    actuator_process.kill()
 
