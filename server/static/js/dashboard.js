@@ -6,38 +6,42 @@ var default_dataset = {
     data: []
 };
 
+// display max 5 minutes
+var MAX_DATA_SIZE = 5*60;
+
 function AppendToOrCreateDataset(name, timestamp, value){
-    var updated = false;
-    for (var i=0; i<window.temperature_data.datasets.length; i++){
-        if (window.temperature_data.datasets[i].label != name)
-            continue;
-        window.temperature_data.datasets[i].data.push({
-            x: timestamp,
-            y: value
-        });
-        updated = true;
+    var dataset = null;
+    for (var i=0; i<window.temperature_data.datasets.length; i++) {
+        if (window.temperature_data.datasets[i].label == name) {
+            dataset = window.temperature_data.datasets[i];
+            break;
+        }
+
     }
 
-    if (updated) 
-        return;
-    
-    console.log(window.default_dataset);
-    new_dataset = JSON.parse(JSON.stringify(window.default_dataset));
-    new_dataset.label = name;
+    if (!dataset) {
+        dataset = JSON.parse(JSON.stringify(window.default_dataset));
+        dataset.label = name;
 
-    var r = Math.floor(Math.random() * 255);
-    var g = Math.floor(Math.random() * 255);
-    var b = Math.floor(Math.random() * 255);
-    new_dataset.borderColor =  "rgb(" + r + "," + g + "," + b + ")";
-    new_dataset.data.push({
+        var h = Math.floor(Math.random() * 12) * 30;
+        // var s = Math.floor(Math.random() * 3) * 25 + 50;
+        var s = 100;
+        var l = Math.floor(Math.random() * 3) * 25 + 25;
+        dataset.borderColor =  "hsl(" + h + ", " + s + "%, " + l + "% )";
+        
+        window.temperature_data.datasets.push(dataset);   
+    }
+    
+    dataset.data.push({
         x: timestamp,
         y: value
     });
-    window.temperature_data.datasets.push(new_dataset);
+
+    while (dataset.data.length > MAX_DATA_SIZE)
+        dataset.data.shift();
 }
 
 function UpdateChart(data){
-    
     for (var i=0; i<data.measurements.length; i++){
         if(window.selected_node != -1 && data.node_id != window.selected_node)
             continue;
@@ -48,7 +52,6 @@ function UpdateChart(data){
             data.measurements[i].value,
         );
     }
-    console.log(window.temperature_data);
     window.temperature_chart.data = window.temperature_data;
     window.temperature_chart.update();
 }
@@ -67,7 +70,7 @@ function MeasurementsSocket() {
 
     this.ws.onmessage = function (evt) { 
         var received_msg = JSON.parse(evt.data);
-        console.log(received_msg);
+        // console.log(received_msg);
         if (received_msg.msg_type === 'update_clients'){
             UpdateChart(received_msg.data);
         }
@@ -131,7 +134,7 @@ function initChart(){
                     position: 'bottom',
                     time: {
                         unit: 'minute',
-                        unitStepSize: 5
+                        unitStepSize: 1
                     }
                 }],
                 yAxes:[{
