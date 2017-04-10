@@ -54,7 +54,7 @@ function UpdateChart(data){
         AppendToOrCreateDataset(
             data.node.name + ' ' + data.measurements[i].label,
             data.timestamp,
-            data.measurements[i].value,
+            data.measurements[i].value
         );
     }
     window.temperature_chart.data = window.temperature_data;
