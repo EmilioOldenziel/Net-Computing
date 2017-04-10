@@ -59,3 +59,13 @@ class Measurement(db.Model):
     value = db.Column(db.Float(), nullable=False)
     timestamp = db.Column(db.DateTime())
     node = db.relationship('Node', backref='measurements')
+
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'label': self.value_type,
+           'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+           'value': self.value,
+           'node': self.node.serialize
+        }

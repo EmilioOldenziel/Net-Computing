@@ -7,10 +7,14 @@ var default_dataset = {
 };
 
 // display max 5 minutes
-var MAX_DATA_SIZE = 5*60;
+var MAX_DATA_AGE = 5*60*1000;
 
 function AppendToOrCreateDataset(name, timestamp, value){
     var dataset = null;
+
+    if (((new Date) - timestamp) > MAX_DATA_AGE)
+        return;
+
     for (var i=0; i<window.temperature_data.datasets.length; i++) {
         if (window.temperature_data.datasets[i].label == name) {
             dataset = window.temperature_data.datasets[i];
@@ -28,7 +32,7 @@ function AppendToOrCreateDataset(name, timestamp, value){
         var s = 100;
         var l = Math.floor(Math.random() * 3) * 25 + 25;
         dataset.borderColor =  "hsl(" + h + ", " + s + "%, " + l + "% )";
-        
+
         window.temperature_data.datasets.push(dataset);   
     }
     
@@ -37,13 +41,14 @@ function AppendToOrCreateDataset(name, timestamp, value){
         y: value
     });
 
-    while (dataset.data.length > MAX_DATA_SIZE)
-        dataset.data.shift();
+    for (var i=0; i<dataset.data.length; i++) 
+        if (((new Date) - new Date(dataset.data[i].x)) > MAX_DATA_AGE)
+            dataset.data.splice(i,1);
 }
 
 function UpdateChart(data){
     for (var i=0; i<data.measurements.length; i++){
-        if(window.selected_node != -1 && data.node_id != window.selected_node)
+        if (window.selected_node != -1 && data.node_id != window.selected_node)
             continue;
 
         AppendToOrCreateDataset(
@@ -132,12 +137,23 @@ function initChart(){
                 xAxes: [{
                     type: 'time',
                     position: 'bottom',
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Time in seconds',
+                    },
                     time: {
-                        unit: 'minute',
-                        unitStepSize: 1
+                        displayFormats:  {
+                            minute: 'HH:mm:ss',
+                            second: 'HH:mm:ss'
+                        },
+                        round: 'second'
                     }
                 }],
                 yAxes:[{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Temperature in degrees Celcius',
+                    },
                     ticks:{
                         suggestedMin: 0,
                         suggestedMax: 100
@@ -145,6 +161,27 @@ function initChart(){
                 }]
             }
         }
+    });
+
+    var url = '/api/measurementslist/';
+    if (window.selected_node != -1)
+        url += window.selected_node;
+
+    fetch(url)
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        data = data.json_list;
+        for (var idx = 0; idx < data.length; idx++) {
+            AppendToOrCreateDataset(
+                data[idx].node.name + ' ' + data[idx].label,
+                data[idx].timestamp,
+                data[idx].value,
+            );
+        }
+        window.temperature_chart.data = window.temperature_data;
+        window.temperature_chart.update();
     });
 }
 

@@ -1,3 +1,4 @@
+import datetime
 import json
 import platform
 from flask import Flask, request, jsonify
@@ -80,8 +81,15 @@ api.add_resource(SensorList, '/api/sensorlist/',
 
 
 class MeasurementList(Resource):
-    def get(self):
-        return jsonify(json_list=[i.serialize for i in Measurement.query.all()])
+    def get(self, node_id=-1, limit=10000):
+        if int(node_id) == -1:
+            results = Measurement.query
+        else:
+            results = Measurement.query.filter_by(node_id=int(node_id))
+        since = datetime.datetime.now() - datetime.timedelta(minutes=10)
+        results = results.filter(Measurement.timestamp > since)\
+            .order_by(Measurement.timestamp.desc()).limit(limit).all()
+        return jsonify(json_list=[i.serialize for i in reversed(results)])
 
     def post(self):
         parser = reqparse.RequestParser()
@@ -94,5 +102,9 @@ class MeasurementList(Resource):
         db.session.commit()
         return 'Measurement added', 201
 
-api.add_resource(MeasurementList, '/api/measurementslist/', 
-    methods=['POST', 'GET'])
+api.add_resource(
+    MeasurementList, 
+    '/api/measurementslist/',
+    '/api/measurementslist/<int:node_id>', 
+    methods=['POST', 'GET']
+)
