@@ -40,10 +40,6 @@ function AppendToOrCreateDataset(name, timestamp, value){
         x: timestamp,
         y: value
     });
-
-    for (var i=0; i<dataset.data.length; i++) 
-        if (((new Date) - new Date(dataset.data[i].x)) > MAX_DATA_AGE)
-            dataset.data.splice(i,1);
 }
 
 function UpdateChart(data){
@@ -56,6 +52,12 @@ function UpdateChart(data){
             data.timestamp,
             data.measurements[i].value
         );
+    }
+    for (var i=0; i<window.temperature_data.datasets.length; i++) {
+        dataset = window.temperature_data.datasets[i]
+        for (var j=0; j<dataset.data.length; j++) 
+            if (((new Date) - new Date(dataset.data[j].x)) > MAX_DATA_AGE)
+                dataset.data.splice(j,1);
     }
     window.temperature_chart.data = window.temperature_data;
     window.temperature_chart.update();
