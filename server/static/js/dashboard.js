@@ -3,7 +3,7 @@ var default_dataset = {
     pointRadius: 1,
     pointHoverRadius: 5,
     fill: false,
-    data: []
+    data: [{x: null, y:null}]
 };
 
 // display max 5 minutes
@@ -139,7 +139,7 @@ function initChart(){
                     position: 'bottom',
                     scaleLabel: {
                         display: true,
-                        labelString: 'Time in seconds',
+                        labelString: 'Time in seconds'
                     },
                     time: {
                         displayFormats:  {
@@ -152,7 +152,7 @@ function initChart(){
                 yAxes:[{
                     scaleLabel: {
                         display: true,
-                        labelString: 'Temperature in degrees Celcius',
+                        labelString: 'Temperature in degrees Celcius'
                     },
                     ticks:{
                         suggestedMin: 0,
@@ -177,7 +177,7 @@ function initChart(){
             AppendToOrCreateDataset(
                 data[idx].node.name + ' ' + data[idx].label,
                 data[idx].timestamp,
-                data[idx].value,
+                data[idx].value
             );
         }
         window.temperature_chart.data = window.temperature_data;
